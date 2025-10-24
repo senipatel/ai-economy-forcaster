@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Deep blue financial theme */
+    --background: 220 25% 8%;
+    --foreground: 210 40% 98%;
+
+    --card: 220 20% 12%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 220 20% 12%;
+    --popover-foreground: 210 40% 98%;
+
+    /* Deep blue primary */
+    --primary: 217 91% 60%;
+    --primary-foreground: 220 25% 8%;
+
+    /* Bright cyan secondary */
+    --secondary: 189 94% 43%;
+    --secondary-foreground: 220 25% 8%;
+
+    --muted: 220 15% 20%;
+    --muted-foreground: 215 20% 65%;
+
+    /* Emerald accent */
+    --accent: 160 84% 39%;
+    --accent-foreground: 220 25% 8%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 220 15% 20%;
+    --input: 220 15% 20%;
+    --ring: 217 91% 60%;
+
+    --radius: 0.75rem;
+
+    /* Chart colors */
+    --chart-1: 217 91% 60%;
+    --chart-2: 189 94% 43%;
+    --chart-3: 160 84% 39%;
+    --chart-4: 280 100% 70%;
+    --chart-5: 45 93% 58%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(189 94% 43%));
+    --gradient-hero: linear-gradient(180deg, hsl(220 25% 8%), hsl(220 20% 12%));
+    
+    /* Shadows */
+    --shadow-glow: 0 0 40px hsl(217 91% 60% / 0.3);
+    --shadow-card: 0 10px 30px -10px hsl(217 91% 60% / 0.2);
+
+    /* Sidebar */
+    --sidebar-background: 220 25% 10%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 220 25% 8%;
+    --sidebar-accent: 220 20% 15%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 220 15% 20%;
+    --sidebar-ring: 217 91% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}

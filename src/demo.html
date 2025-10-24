@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FRED API Graph Generator</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+      background-color: #f4f4f9;
+    }
+    h1 {
+      color: #333;
+      border-bottom: 2px solid #007bff;
+      padding-bottom: 5px;
+    }
+    form {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 15px 10px;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background-color: #fff;
+      margin-bottom: 20px;
+    }
+    label {
+      font-weight: bold;
+      align-self: center;
+    }
+    input, select, button {
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      grid-column: 1 / 3;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover:not(:disabled) {
+      background-color: #0056b3;
+    }
+    button:disabled {
+      background-color: #a0c4ff;
+      cursor: not-allowed;
+    }
+    .metadata-header {
+      background-color: #e9ecef;
+      padding: 10px 20px;
+      margin-bottom: 15px;
+      border-radius: 4px;
+      border-left: 4px solid #007bff;
+    }
+    .metadata-header p {
+      margin: 5px 0;
+    }
+    .metadata-header strong {
+      color: #333;
+    }
+    #chartContainer {
+      width: 100%;
+      height: 400px;
+      margin-top: 20px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 10px;
+    }
+    #error {
+      color: #d9534f;
+      background-color: #f2dede;
+      border: 1px solid #ebccd1;
+      padding: 10px;
+      border-radius: 4px;
+      display: none;
+      margin-top: 10px;
+    }
+    #loading {
+      display: none;
+      color: #5bc0de;
+      padding: 10px;
+      font-weight: bold;
+    }
+    .full-width {
+      grid-column: 2 / 3;
+    }
+  </style>
+</head>
+<body>
+  <h1>FRED API Graph Generator</h1>
+  <form id="graphForm">
+    <label for="seriesId">Economic Series:</label>
+    <select id="seriesId" class="full-width">
+      <option value="">Select a Series</option>
+    </select>
+
+    <label for="customSeriesId">Or Custom ID:</label>
+    <input type="text" id="customSeriesId" class="full-width" placeholder="e.g., CPALTT01JPM661N">
+
+    <label for="startYear">Start Year:</label>
+    <input type="number" id="startYear" value="2010" min="1900" max="2025" class="full-width">
+
+    <label for="endYear">End Year:</label>
+    <input type="number" id="endYear" value="2024" min="1900" max="2025" class="full-width">
+
+    <label for="frequency">Frequency:</label>
+    <select id="frequency" class="full-width">
+      <option value="">Default (Native)</option>
+      <option value="a">Annual</option>
+      <option value="q">Quarterly</option>
+      <option value="m">Monthly</option>
+      <option value="w">Weekly</option>
+      <option value="d">Daily</option>
+    </select>
+
+    <label for="chartType">Chart Type:</label>
+    <select id="chartType" class="full-width">
+      <option value="line">Line Chart</option>
+      <option value="bar">Bar Chart</option>
+      <option value="scatter">Scatter Plot</option>
+    </select>
+
+    <button type="submit" disabled>Generate Graph</button>
+  </form>
+
+  <div id="metadataDisplay" class="metadata-header" style="display:none;"></div>
+
+  <div id="error"></div>
+  <div id="loading">Loading...</div>
+  <div id="urlDisplay" style="color: #0056b3; margin-top: 10px; font-size: 14px; word-break: break-all;">API URL:</div>
+  
+  <div id="chartContainer">
+    <canvas id="myChart"></canvas>
+  </div>
+
+  <script>
+    const form = document.getElementById('graphForm');
+    const seriesSelect = document.getElementById('seriesId');
+    const customSeriesInput = document.getElementById('customSeriesId');
+    const generateBtn = form.querySelector('button[type="submit"]');
+    const errorDiv = document.getElementById('error');
+    const loadingDiv = document.getElementById('loading');
+    const urlDisplayDiv = document.getElementById('urlDisplay'); // Get the URL display div
+    const metadataDisplayDiv = document.getElementById('metadataDisplay'); // Get metadata display div
+    
+    // ⚠️ IMPORTANT: Replace this with your valid FRED API Key
+    const apiKey = '531fa24fc93803e323e02332d80a7338';
+    let myChart = null;
+
+    // Fallback series data
+    const fallbackSeries = [
+      { id: 'GDP', title: 'USA: Gross Domestic Product (GDP)' },
+      { id: 'UNRATE', title: 'USA: Unemployment Rate' },
+      { id: 'CPIAUCSL', title: 'USA: Consumer Price Index (CPI)' },
+      { id: 'FEDFUNDS', title: 'USA: Federal Funds Effective Rate' },
+      { id: 'CPALTT01JPM661N', title: 'Japan: Consumer Price Index' },
+      { id: 'MKTGDPCHA646NWDB', title: 'China: Gross Domestic Product' },
+      { id: 'CLVMNACSCAB1GQEA19', title: 'Euro Area: Real GDP' },
+    ];
+
+    // Placeholder for API-fetched metadata
+    let seriesTitle = '';
+
+    // Log function (currently silent as per user request to remove debugLog)
+    function logDebug(message) {
+      // console.log(`[DEBUG] ${message}`);
+    }
+
+    // --- Utility Functions ---
+
+    function updateButtonState() {
+        generateBtn.disabled = !(seriesSelect.value || customSeriesInput.value.trim());
+    }
+
+    // Populate series dropdown (Same as before)
+    async function updateSeriesOptions() {
+      seriesSelect.disabled = true;
+      seriesSelect.innerHTML = '<option value="">Select a Series</option>'; 
+      
+      fallbackSeries.forEach(series => {
+        const option = document.createElement('option');
+        option.value = series.id;
+        option.textContent = series.title;
+        seriesSelect.appendChild(option);
+      });
+
+      try {
+        const url = `https://api.stlouisfed.org/fred/series/search?search_text=gdp&api_key=${apiKey}&file_type=json&limit=10&order_by=popularity`;
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.seriess && data.seriess.length > 0) {
+          data.seriess.forEach(series => {
+            if (!fallbackSeries.some(fb => fb.id === series.id)) {
+              const option = document.createElement('option');
+              option.value = series.id;
+              option.textContent = `${series.title} (${series.id})`;
+              seriesSelect.appendChild(option);
+            }
+          });
+        }
+      } catch (error) {
+        logDebug(`API series fetch error (Non-critical): ${error.message}`);
+      } finally {
+        seriesSelect.disabled = false;
+        updateButtonState();
+      }
+    }
+    
+    // --- NEW: Fetch Metadata ---
+    async function fetchSeriesMetadata(seriesId) {
+        const metadataUrl = `https://api.stlouisfed.org/fred/series?series_id=${seriesId}&api_key=${apiKey}&file_type=json`;
+        
+        logDebug(`Fetching metadata: ${metadataUrl}`);
+        
+        try {
+            const response = await fetch(metadataUrl, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                if (response.status === 400) {
+                    throw new Error(`Invalid series ID: ${seriesId}`);
+                } else if (response.status === 401) {
+                    throw new Error('Invalid API key. Please check your FRED API key.');
+                } else if (response.status === 429) {
+                    throw new Error('API rate limit exceeded. Please try again later.');
+                } else {
+                    throw new Error(`API Error: HTTP ${response.status} - ${response.statusText}`);
+                }
+            }
+
+            const data = await response.json();
+            
+            if (!data || !data.seriess || !data.seriess[0]) {
+                throw new Error('Series ID not found or metadata not available.');
+            }
+
+            const seriesData = data.seriess[0];
+            
+            // Update metadata display
+            metadataDisplayDiv.innerHTML = `
+                <p><strong>Series ID:</strong> ${seriesId}</p>
+                <p><strong>Title:</strong> ${seriesData.title}</p>
+                <p><strong>Units:</strong> ${seriesData.units || 'N/A'}</p>
+                <p><strong>Frequency:</strong> ${seriesData.frequency_short || 'N/A'}</p>
+            `;
+            metadataDisplayDiv.style.display = 'block';
+            
+            // Update the global title for the chart
+            seriesTitle = seriesData.title;
+            
+            return seriesData; // Return the series data for potential future use
+        } catch (error) {
+            throw new Error(`Metadata Error: ${error.message}`);
+        }
+    }
+
+    // --- Event Listeners ---
+    seriesSelect.addEventListener('change', updateButtonState);
+    customSeriesInput.addEventListener('input', updateButtonState);
+    
+    // Initialize series dropdown
+    updateSeriesOptions();
+
+    // Form submit for graph
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorDiv.style.display = 'none';
+      metadataDisplayDiv.style.display = 'none'; // Clear metadata
+      loadingDiv.textContent = 'Fetching metadata and data...';
+      loadingDiv.style.display = 'block';
+      urlDisplayDiv.textContent = 'API URL:'; // Clear URL display
+
+      let seriesId = seriesSelect.value.trim() || customSeriesInput.value.trim();
+      
+      const startYear = parseInt(document.getElementById('startYear').value);
+      const endYear = parseInt(document.getElementById('endYear').value);
+      const frequency = document.getElementById('frequency').value;
+      const chartType = document.getElementById('chartType').value;
+
+      if (!seriesId) {
+        errorDiv.textContent = 'Please select a series or enter a custom series ID.';
+        errorDiv.style.display = 'block';
+        loadingDiv.style.display = 'none';
+        return;
+      }
+      if (endYear < startYear) {
+        errorDiv.textContent = 'End year must be greater than or equal to the start year.';
+        errorDiv.style.display = 'block';
+        loadingDiv.style.display = 'none';
+        return;
+      }
+      
+      // --- Step 1: Fetch Metadata (New) ---
+      try {
+          await fetchSeriesMetadata(seriesId);
+      } catch (error) {
+          errorDiv.textContent = `Metadata Error: ${error.message}`;
+          errorDiv.style.display = 'block';
+          loadingDiv.style.display = 'none';
+          return;
+      }
+
+      // --- Step 2: Fetch Observations ---
+      loadingDiv.textContent = 'Fetching observations...';
+
+      const observationStart = `${startYear}-01-01`;
+      const observationEnd = `${endYear}-12-31`;
+      
+      let url = `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${apiKey}&file_type=json&observation_start=${observationStart}&observation_end=${observationEnd}`;
+      
+      if (frequency) {
+          url += `&frequency=${frequency}`;
+      }
+      
+      // 🐛 Print the API URL (as requested by the user)
+      urlDisplayDiv.textContent = `API URL: ${url}`; 
+      
+      try {
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          let msg = `HTTP Error ${response.status}: ${response.statusText}`;
+          if (response.status === 400) {
+              msg = `Bad Request (400). Series ID "${seriesId}" may not exist, or parameters are invalid.`;
+          } else if (response.status === 401) {
+              msg = 'Unauthorized (401). Invalid API Key.';
+          }
+          throw new Error(msg);
+        }
+        
+        const data = await response.json();
+        
+        if (!data.observations || data.observations.length === 0) {
+          throw new Error(`No data found for series ID "${seriesId}" in the specified range/frequency.`);
+        }
+
+        const labels = data.observations.map(obs => obs.date);
+        const values = data.observations.map(obs => {
+          const value = obs.value === '.' ? null : parseFloat(obs.value);
+          return value;
+        });
+
+        if (myChart) myChart.destroy();
+
+        const ctx = document.getElementById('myChart').getContext('2d');
+        myChart = new Chart(ctx, {
+          type: chartType,
+          data: {
+            labels: labels,
+            datasets: [{
+              label: seriesTitle || seriesId, // Use the fetched title
+              data: values,
+              borderColor: '#007bff',
+              backgroundColor: chartType === 'bar' ? 'rgba(0, 123, 255, 0.6)' : 'rgba(0, 123, 255, 1)',
+              fill: chartType === 'line' ? false : false, // Set to false for cleaner line charts
+              pointRadius: chartType === 'scatter' ? 4 : 0,
+              tension: chartType === 'line' ? 0.4 : 0,
+              spanGaps: true
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: { 
+                  title: { display: true, text: 'Date' },
+                  type: 'category',
+                  labels: labels 
+              },
+              y: { title: { display: true, text: 'Value' } }
+            },
+            plugins: {
+              title: { 
+                  display: true, 
+                  text: `${seriesTitle} (${seriesId})` // Use the fetched title here too
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    let label = context.dataset.label.split('(')[0].trim() || ''; // Clean up label
+                    if (label) { label += ': '; }
+                    if (context.parsed.y !== null) {
+                      label += context.parsed.y.toLocaleString();
+                    }
+                    return label;
+                  }
+                }
+              }
+            }
+          }
+        });
+
+      } catch (error) {
+        logDebug(`Graph fetch error: ${error.message}`);
+        errorDiv.textContent = `Graph Error: ${error.message}`;
+        errorDiv.style.display = 'block';
+      } finally {
+        loadingDiv.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>
