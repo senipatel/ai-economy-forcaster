@@ -70,76 +70,37 @@ export const GDPChart = () => {
   // -----------------------------------------------------------------
   // 5. Load data – FRED API → cache → placeholder fallback
   // -----------------------------------------------------------------
-  useEffect(() => {
-    const cached = getCachedData(cacheKey);
-    if (cached) {
-      setDataAll(cached);
-      setLoading(false);
-      return;
-    }
+ useEffect(() => {
+  const cached = getCachedData(cacheKey);
+  if (cached) {
+    setDataAll(cached);
+    setLoading(false);
+    return;
+  }
 
-    const apiKey = import.meta.env.VITE_FRED_API_KEY;
-    if (!apiKey) {
+  // CALL YOUR PROXY, NOT FRED
+  fetch("/api/fred-gdp")
+    .then((r) => {
+      if (!r.ok) {
+        return r.text().then(text => { throw new Error(text); });
+      }
+      return r.json();
+    })
+    .then((data) => {
+      setDataAll(data);
+      setCachedData(cacheKey, data);
+      setLoading(false);
+    })
+    .catch((err) => {
+      console.error("FRED proxy failed → using placeholder:", err);
       toast({
-        title: "Missing API key",
-        description: "Add VITE_FRED_API_KEY to .env",
+        title: "Using demo data",
+        description: "Real GDP data unavailable",
         variant: "destructive",
       });
       fallbackToPlaceholder();
-      return;
-    }
-
-    // ---- Real API call -------------------------------------------------
-    const url = new URL(FRED_BASE_URL);
-    url.searchParams.append("series_id", FRED_SERIES_ID);
-    url.searchParams.append("api_key", apiKey);
-    url.searchParams.append("file_type", "json");
-    url.searchParams.append("sort_order", "asc");
-    // optional: limit to last 10 years (120 months) – FRED returns all
-    // url.searchParams.append("limit", "120");
-
-    fetch(url.toString())
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((json: any) => {
-        if (!json?.observations?.length) throw new Error("Empty data");
-
-        const parsed = json.observations
-          .filter((o: any) => o.value !== ".") // skip missing values
-          .map((o: any) => ({
-            date: formatFredDate(o.date),
-            gdp: Number(o.value) / 1_000, // billions → trillions for nicer Y-axis
-          }));
-
-        setDataAll(parsed);
-        setCachedData(cacheKey, parsed);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("FRED API error → using placeholder:", err);
-        toast({
-          title: "FRED API failed",
-          description: "Falling back to demo data",
-          variant: "destructive",
-        });
-        fallbackToPlaceholder();
-      });
-
-    // ---- Fallback placeholder -----------------------------------------
-    function fallbackToPlaceholder() {
-      const months = 120;
-      const labels = generatePlaceholderMonths(months);
-      const placeholder = labels.map((lab, idx) => ({
-        date: lab,
-        gdp: +(Math.sin(idx / 8) * 1.5 + Math.random() * 0.8).toFixed(2),
-      }));
-      setDataAll(placeholder);
-      setCachedData(cacheKey, placeholder);
-      setLoading(false);
-    }
-  }, []);
+    });
+}, []);
 
   // -----------------------------------------------------------------
   // 6. Slice data when range changes
@@ -228,11 +189,10 @@ export const GDPChart = () => {
                 <button
                   key={k}
                   onClick={() => setRange(k)}
-                  className={`px-3 py-1 rounded-md text-sm transition-colors ${
-                    range === k
+                  className={`px-3 py-1 rounded-md text-sm transition-colors ${range === k
                       ? "bg-primary text-white"
                       : "bg-transparent border border-border hover:bg-muted"
-                  }`}
+                    }`}
                 >
                   {k}
                 </button>
@@ -307,3 +267,7 @@ export const GDPChart = () => {
     </div>
   );
 };
+
+function fallbackToPlaceholder() {
+  throw new Error("Function not implemented.");
+}
