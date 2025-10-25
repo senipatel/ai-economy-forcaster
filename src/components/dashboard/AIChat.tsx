@@ -12,7 +12,7 @@ interface AIChatProps {
   chartData?: any[];
 }
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
 
 const DEFAULT_PROMPTS = [
   "Provide a summary of this graph",
