@@ -5,7 +5,7 @@ export const config = {
   },
 };
 
-export default async function handler(req, res) {
+export default async function handler(req:any, res:any) {
   const API_KEY = process.env.VITE_FRED_API_KEY;
   if (!API_KEY) {
     return res.status(500).json({ error: "FRED API key missing" });
@@ -21,8 +21,8 @@ export default async function handler(req, res) {
     const data = await fredRes.json();
 
     const formatted = data.observations
-      .filter((o) => o.value !== ".")
-      .map((o) => ({
+      .filter((o:any) => o.value !== ".")
+      .map((o:any) => ({
         date: o.date.slice(5, 7) + "/" + o.date.slice(2, 4), // MM/YY
         gdp: Number(o.value) / 1000, // Billions → Trillions
       }));
