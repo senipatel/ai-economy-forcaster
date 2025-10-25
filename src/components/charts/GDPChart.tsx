@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Download, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { toPng } from "html-to-image";
 import html2canvas from "html2canvas";
 import { getCachedData, setCachedData } from "@/lib/chartCache";
 
@@ -74,7 +73,7 @@ export const GDPChart = () => {
     setDisplayData(dataAll.slice(-months));
   }, [dataAll, range]);
 
-const handleDownload = async () => {
+  const handleDownload = async () => {
     const chartElement = document.getElementById("gdp-chart");
     if (!chartElement) return;
 
@@ -95,7 +94,7 @@ const handleDownload = async () => {
       toast({ title: "Error", description: "Failed to download chart", variant: "destructive" });
     }
   };
-  
+
   if (loading) {
     return <div className="h-[400px] flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
   }
