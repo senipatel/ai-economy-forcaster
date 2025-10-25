@@ -38,7 +38,7 @@ export const GDPChart = () => {
       try {
         setLoading(true);
 
-        const apiKey = process.env.NEXT_PUBLIC_FRED_API_KEY;
+        const apiKey = import.meta.env.VITE_FRED_API_KEY;
         if (!apiKey) throw new Error("FRED API key not set");
 
         const seriesId = "A191RL1Q225S"; // Real GDP, QoQ % change, SAAR
