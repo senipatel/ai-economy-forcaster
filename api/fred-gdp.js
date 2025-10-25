@@ -6,7 +6,7 @@ export const config = {
 };
 
 export default async function handler(req, res) {
-  const API_KEY = process.env.FRED_API_KEY;
+  const API_KEY = process.env.VITE_FRED_API_KEY;
   if (!API_KEY) {
     return res.status(500).json({ error: "FRED API key missing" });
   }
