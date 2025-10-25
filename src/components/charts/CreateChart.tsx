@@ -365,9 +365,9 @@ const CreateChart = () => {
 
   return (
     <Dialog>
-      <DialogTrigger asChild>
+      {/* <DialogTrigger asChild>
         <Button>Create Graph</Button>
-      </DialogTrigger>
+      </DialogTrigger> */}
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Create Custom Graph</DialogTitle>
