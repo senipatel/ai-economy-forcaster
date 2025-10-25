@@ -55,13 +55,13 @@ export const DashboardSidebar = ({ selectedChart, onSelectChart }: DashboardSide
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-4 space-y-2">
+      {/* <SidebarFooter className="p-4 space-y-2">
         <CreateChart />
-        {/* <Button variant="outline" size="sm" className="w-full gap-2">
+        <Button variant="outline" size="sm" className="w-full gap-2">
           <Upload className="w-4 h-4" />
           Create from Data
-        </Button> */}
-      </SidebarFooter>
+        </Button>
+      </SidebarFooter> */}
     </Sidebar>
   );
 };
