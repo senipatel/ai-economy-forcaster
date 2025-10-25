@@ -15,7 +15,6 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Download, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { toPng } from "html-to-image";
 import { getCachedData, setCachedData } from "@/lib/chartCache";
 import html2canvas from "html2canvas";
 

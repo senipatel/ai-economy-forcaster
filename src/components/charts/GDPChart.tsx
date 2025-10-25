@@ -5,13 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Download, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { toPng } from "html-to-image";
 import html2canvas from "html2canvas";
 import { getCachedData, setCachedData } from "@/lib/chartCache";
 
-// ====================================================================
-// Constants and Utilities
-// ====================================================================
 type RangeKey = "3M" | "1Y" | "3Y" | "5Y" | "10Y";
 const RANGE_MAP: Record<RangeKey, number> = { "3M": 3, "1Y": 12, "3Y": 36, "5Y": 60, "10Y": 120 };
 
@@ -40,10 +36,6 @@ function shortDate(label: string | number) {
     return String(label);
   }
 }
-
-// ====================================================================
-// Main Component
-// ====================================================================
 
 export const GDPChart = () => {
   const cacheKey = "gdp";
@@ -81,7 +73,7 @@ export const GDPChart = () => {
     setDisplayData(dataAll.slice(-months));
   }, [dataAll, range]);
 
-const handleDownload = async () => {
+  const handleDownload = async () => {
     const chartElement = document.getElementById("gdp-chart");
     if (!chartElement) return;
 
@@ -102,7 +94,7 @@ const handleDownload = async () => {
       toast({ title: "Error", description: "Failed to download chart", variant: "destructive" });
     }
   };
-  
+
   if (loading) {
     return <div className="h-[400px] flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
   }
@@ -123,16 +115,12 @@ const handleDownload = async () => {
 
   return (
     <div className="space-y-4">
-      {/* The main header container: uses flex-row and justify-between on medium/large screens */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between sm:space-y-0 space-y-2">
 
-        {/* Range Buttons, Checkbox, and Download Button container (Right side) */}
         <div className="flex items-center justify-between w-full">
 
-          {/* LEFT GROUP: Range Buttons and Show Markers Checkbox */}
           <div className="flex items-center gap-4 flex-wrap">
 
-            {/* Range Buttons */}
             <div className="space-x-2">
               {(["3M", "1Y", "3Y", "5Y", "10Y"] as RangeKey[]).map(k => (
                 <button
@@ -145,14 +133,12 @@ const handleDownload = async () => {
               ))}
             </div>
 
-            {/* Show Markers Checkbox */}
             <label className="inline-flex items-center gap-2 text-sm">
               <Checkbox checked={showDots} onCheckedChange={(v) => setShowDots(Boolean(v))} />
               <span className="select-none">Show markers</span>
             </label>
           </div>
 
-          {/* RIGHT GROUP: Download Button */}
           <div className="flex-shrink-0">
             <Button variant="outline" size="sm" className="gap-2 no-export" onClick={handleDownload}><Download className="w-4 h-4" />Download</Button>
           </div>
@@ -160,7 +146,6 @@ const handleDownload = async () => {
         </div>
       </div>
 
-      {/* The chart remains the same */}
       <ResponsiveContainer width="100%" height={400} id="gdp-chart">
         <LineChart data={displayData} margin={{ top: 20, right: 20, bottom: 80, left: 20 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />

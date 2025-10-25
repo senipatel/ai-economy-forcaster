@@ -63,7 +63,7 @@ const CreateChart = () => {
   // It's best practice to store API keys in environment variables
   // Create a .env.local file in your project root and add:
   // VITE_FRED_API_KEY=your_api_key_here
-  const apiKey = import.meta.env.VITE_FRED_API_KEY; // Fallback for demonstration
+  const apiKey = process.env.VITE_FRED_API_KEY; // Fallback for demonstration
   const { toast } = useToast();
 
   const [step, setStep] = useState(1);

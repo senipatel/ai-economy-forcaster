@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Download, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
-import { toPng } from "html-to-image";
 import { getCachedData, setCachedData } from "@/lib/chartCache";
 import html2canvas from "html2canvas";
 
