@@ -40,7 +40,7 @@ export const AIChat = ({ chartType, chartData }: AIChatProps) => {
       ? `\n\nChart Data Context: ${JSON.stringify(chartData.slice(0, 10))}...` 
       : "";
 
-    const prompt = `You are an AI Economist Assistant. Answer only economy-related questions 
+    const prompt = `You are an AI Economist Assistant. Answer only economy,finances,markets,trade and Nation related questions 
     (macroeconomics, microeconomics, finance, markets, trade). If unrelated, reply: "I can only answer 
     economy-related questions." Keep answers concise (100-150 words), simple, and clear. User: 
     ${messageToSend} ${contextInfo}`;
