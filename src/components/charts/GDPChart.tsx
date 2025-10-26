@@ -10,9 +10,18 @@ import {
   Legend,
   ResponsiveContainer,
   Label,
+  BarChart,
+  Bar,
 } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Download, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import html2canvas from "html2canvas";
@@ -22,6 +31,8 @@ import { getCachedData, setCachedData } from "@/lib/chartCache";
 // 1. Types & Constants
 // ---------------------------------------------------------------
 type RangeKey = "3M" | "1Y" | "3Y" | "5Y" | "10Y";
+type ChartType = "line" | "bar";
+
 const RANGE_MAP: Record<RangeKey, number> = {
   "3M": 3,
   "1Y": 12,
@@ -30,7 +41,7 @@ const RANGE_MAP: Record<RangeKey, number> = {
   "10Y": 120,
 };
 
-const FRED_SERIES_ID = "GDP";                     // quarterly real GDP
+const FRED_SERIES_ID = "GDP"; // quarterly real GDP
 const FRED_BASE_URL = "https://api.stlouisfed.org/fred/series/observations";
 
 // ---------------------------------------------------------------
@@ -66,41 +77,62 @@ export const GDPChart = () => {
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState<RangeKey>("1Y");
   const [showDots, setShowDots] = useState<boolean>(true);
+  const [chartType, setChartType] = useState<ChartType>("line");
+
+  const fallbackToPlaceholder = () => {
+    const placeholderData: { date: string; gdp: string }[] = [];
+    const now = new Date();
+    // Generate 10 years of monthly data as a fallback
+    for (let i = 119; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const date = `${d.getMonth() + 1}/${d.getFullYear().toString().slice(-2)}`;
+      // Fake GDP-like data with a slight upward trend and some noise
+      const gdp = 20 + i * 0.02 + Math.sin(i / 12) * 0.5 + (Math.random() - 0.5) * 0.3;
+      placeholderData.push({
+        date: date,
+        gdp: gdp.toFixed(1),
+      });
+    }
+    setDataAll(placeholderData);
+    setLoading(false);
+  };
 
   // -----------------------------------------------------------------
   // 5. Load data – FRED API → cache → placeholder fallback
   // -----------------------------------------------------------------
- useEffect(() => {
-  const cached = getCachedData(cacheKey);
-  if (cached) {
-    setDataAll(cached);
-    setLoading(false);
-    return;
-  }
-
-  // CALL YOUR PROXY, NOT FRED
-  fetch("/api/fred-gdp")
-    .then((r) => {
-      if (!r.ok) {
-        return r.text().then(text => { throw new Error(text); });
-      }
-      return r.json();
-    })
-    .then((data) => {
-      setDataAll(data);
-      setCachedData(cacheKey, data);
+  useEffect(() => {
+    const cached = getCachedData(cacheKey);
+    if (cached) {
+      setDataAll(cached);
       setLoading(false);
-    })
-    .catch((err) => {
-      console.error("FRED proxy failed → using placeholder:", err);
-      toast({
-        title: "Using demo data",
-        description: "Real GDP data unavailable",
-        variant: "destructive",
+      return;
+    }
+
+    // CALL YOUR PROXY, NOT FRED
+    fetch("/api/fred-gdp")
+      .then((r) => {
+        if (!r.ok) {
+          return r.text().then((text) => {
+            throw new Error(text);
+          });
+        }
+        return r.json();
+      })
+      .then((data) => {
+        setDataAll(data);
+        setCachedData(cacheKey, data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("FRED proxy failed → using placeholder:", err);
+        toast({
+          title: "Using demo data",
+          description: "Real GDP data unavailable",
+          variant: "warning",
+        });
+        fallbackToPlaceholder();
       });
-      fallbackToPlaceholder();
-    });
-}, []);
+  }, []);
 
   // -----------------------------------------------------------------
   // 6. Slice data when range changes
@@ -124,13 +156,17 @@ export const GDPChart = () => {
         scale: 2, // higher resolution
       });
       const link = document.createElement("a");
-      link.download = "gdp-chart.png";
+      link.download = `gdp-${chartType}-chart.png`;
       link.href = canvas.toDataURL();
       link.click();
       toast({ title: "Success", description: "Chart downloaded" });
     } catch (err) {
       console.error(err);
-      toast({ title: "Error", description: "Download failed", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Download failed",
+        variant: "destructive",
+      });
     }
   };
 
@@ -189,23 +225,43 @@ export const GDPChart = () => {
                 <button
                   key={k}
                   onClick={() => setRange(k)}
-                  className={`px-3 py-1 rounded-md text-sm transition-colors ${range === k
+                  className={`px-3 py-1 rounded-md text-sm transition-colors ${
+                    range === k
                       ? "bg-primary text-white"
                       : "bg-transparent border border-border hover:bg-muted"
-                    }`}
+                  }`}
                 >
                   {k}
                 </button>
               ))}
             </div>
 
-            <label className="inline-flex items-center gap-2 text-sm">
-              <Checkbox
-                checked={showDots}
-                onCheckedChange={(v) => setShowDots(Boolean(v))}
-              />
-              <span className="select-none">Show markers</span>
-            </label>
+            {chartType === "line" && (
+              <label className="inline-flex items-center gap-2 text-sm">
+                <Checkbox
+                  checked={showDots}
+                  onCheckedChange={(v) => setShowDots(Boolean(v))}
+                />
+                <span className="select-none">Show markers</span>
+              </label>
+            )}
+            <div className="flex items-center gap-2">
+              <label htmlFor="chart-type" className="text-sm select-none">
+                Chart Type
+              </label>
+              <Select
+                value={chartType}
+                onValueChange={(v) => setChartType(v as ChartType)}
+              >
+                <SelectTrigger id="chart-type" className="w-[100px] h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="line">Line</SelectItem>
+                  <SelectItem value="bar">Bar</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* RIGHT: download */}
@@ -225,49 +281,83 @@ export const GDPChart = () => {
 
       {/* Chart */}
       <ResponsiveContainer width="100%" height={400} id="gdp-chart">
-        <LineChart
-          data={displayData}
-          margin={{ top: 20, right: 20, bottom: 80, left: 20 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-          <XAxis
-            dataKey="date"
-            stroke="hsl(var(--foreground))"
-            tick={renderTick}
-            interval={interval}
+        {chartType === "line" ? (
+          <LineChart
+            data={displayData}
+            margin={{ top: 20, right: 20, bottom: 80, left: 20 }}
           >
-            <Label value="Date" position="center" dy={60} />
-          </XAxis>
-          <YAxis stroke="hsl(var(--foreground))">
-            <Label
-              value="Real GDP (Trillions of 2017 $)"
-              angle={-90}
-              position="center"
-              dx={-30}
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis
+              dataKey="date"
+              stroke="hsl(var(--foreground))"
+              tick={renderTick}
+              interval={interval}
+            >
+              <Label value="Date" position="center" dy={60} />
+            </XAxis>
+            <YAxis stroke="hsl(var(--foreground))">
+              <Label
+                value="Real GDP (Trillions of 2017 $)"
+                angle={-90}
+                position="center"
+                dx={-30}
+              />
+            </YAxis>
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "hsl(var(--card))",
+                border: "1px solid hsl(var(--border))",
+                borderRadius: 8,
+              }}
             />
-          </YAxis>
-          <Tooltip
-            contentStyle={{
-              backgroundColor: "hsl(var(--card))",
-              border: "1px solid hsl(var(--border))",
-              borderRadius: 8,
-            }}
-          />
-          <Legend verticalAlign="top" align="center" />
-          <Line
-            type="monotone"
-            dataKey="gdp"
-            stroke="hsl(var(--chart-1))"
-            strokeWidth={3}
-            name="Real GDP (Trillions of 2017 $)"
-            dot={showDots ? { fill: "hsl(var(--chart-1))", r: 4 } : false}
-          />
-        </LineChart>
+            <Legend verticalAlign="top" align="center" />
+            <Line
+              type="monotone"
+              dataKey="gdp"
+              stroke="hsl(var(--chart-1))"
+              strokeWidth={3}
+              name="Real GDP (Trillions of 2017 $)"
+              dot={showDots ? { fill: "hsl(var(--chart-1))", r: 4 } : false}
+            />
+          </LineChart>
+        ) : (
+          <BarChart
+            data={displayData}
+            margin={{ top: 20, right: 20, bottom: 80, left: 20 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis
+              dataKey="date"
+              stroke="hsl(var(--foreground))"
+              tick={renderTick}
+              interval={interval}
+            >
+              <Label value="Date" position="center" dy={60} />
+            </XAxis>
+            <YAxis stroke="hsl(var(--foreground))">
+              <Label
+                value="Real GDP (Trillions of 2017 $)"
+                angle={-90}
+                position="center"
+                dx={-30}
+              />
+            </YAxis>
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "hsl(var(--card))",
+                border: "1px solid hsl(var(--border))",
+                borderRadius: 8,
+              }}
+            />
+            <Legend verticalAlign="top" align="center" />
+            <Bar
+              dataKey="gdp"
+              fill="hsl(var(--chart-1))"
+              name="Real GDP (Trillions of 2017 $)"
+            />
+          </BarChart>
+        )}
       </ResponsiveContainer>
     </div>
   );
 };
-
-function fallbackToPlaceholder() {
-  throw new Error("Function not implemented.");
-}

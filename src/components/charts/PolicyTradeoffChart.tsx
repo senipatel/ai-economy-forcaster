@@ -178,7 +178,7 @@ export const PolicyTradeoffChart = () => {
 
       {/* Chart */}
       <ResponsiveContainer width="100%" height={400} id="policy-tradeoff-chart">
-        <LineChart data={displayData} margin={{ top: 20, right: 50, bottom: 80, left: 20 }}>
+        <LineChart align="center" data={displayData} margin={{ top: 20, right: 20, bottom: 80, left: 20 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis
             dataKey="date"
@@ -204,13 +204,13 @@ export const PolicyTradeoffChart = () => {
             <Label value="Date" position="center" dy={60} />
           </XAxis>
 
-          {/* Left Y: Growth */}
+          {/* Left Y: GDP */}
           <YAxis
             yAxisId="growth"
             stroke="hsl(var(--chart-1))"
             domain={["dataMin - 1", "dataMax + 1"]}
           >
-            <Label value="GDP (Trillions $)" angle={-90} position="insideLeft" dx={10} />
+            <Label align="center" value="GDP (Trillions $)" angle={-90} position="center" dx={-25} />
           </YAxis>
 
           {/* Right Y: Inflation */}
@@ -220,7 +220,7 @@ export const PolicyTradeoffChart = () => {
             stroke="hsl(var(--chart-2))"
             domain={[0, 10]}
           >
-            <Label value="Inflation (%)" angle={-90} position="insideRight" dx={-10} />
+            <Label align="center" value="Inflation (%)" angle={-90} position="center" dx={25} />
           </YAxis>
 
           <Tooltip

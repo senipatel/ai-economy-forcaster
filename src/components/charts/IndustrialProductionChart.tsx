@@ -208,7 +208,7 @@ export const IndustrialProductionChart = () => {
             <Label value="Date" position="center" dy={60} />
           </XAxis>
           <YAxis stroke="hsl(var(--foreground))">
-            <Label value="Industrial Production (2017=100)" angle={-90} position="center" dx={-30} />
+            <Label value="Industrial Production" angle={-90} position="center" dx={-30} />
           </YAxis>
           <Tooltip
             contentStyle={{
