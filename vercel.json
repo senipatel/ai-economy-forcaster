@@ -1,14 +1,5 @@
 {
-  "rewrites": [
-    {
-      "source": "/dashboard/:path*",
-      "destination": "/dashboard"
-    },
-    {
-      "source": "/:path*",
-      "destination": "/"
-    }
-  ],
+  "version": 2,
   "builds": [
     {
       "src": "package.json",
@@ -16,12 +7,26 @@
       "config": {
         "distDir": "dist"
       }
+    },
+    {
+      "src": "api/**/*.ts",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
       "dest": "/api/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/dist/$1"
     }
-  ]
+  ],
+  "functions": {
+    "api/**/*.ts": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  }
 }
