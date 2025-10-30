@@ -210,6 +210,11 @@ export const GDPChart = () => {
     );
   };
 
+  const tooltipFormatter = (value: any) => {
+    const num = Number(value);
+    return isNaN(num) ? String(value) : num.toFixed(1);
+  };
+
   // -----------------------------------------------------------------
   // 9. JSX (same UI you already had)
   // -----------------------------------------------------------------
@@ -304,6 +309,7 @@ export const GDPChart = () => {
               />
             </YAxis>
             <Tooltip
+              formatter={tooltipFormatter}
               contentStyle={{
                 backgroundColor: "hsl(var(--card))",
                 border: "1px solid hsl(var(--border))",
@@ -343,6 +349,7 @@ export const GDPChart = () => {
               />
             </YAxis>
             <Tooltip
+              formatter={tooltipFormatter}
               contentStyle={{
                 backgroundColor: "hsl(var(--card))",
                 border: "1px solid hsl(var(--border))",
