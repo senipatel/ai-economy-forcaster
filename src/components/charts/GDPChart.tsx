@@ -68,7 +68,7 @@ function generatePlaceholderMonths(months: number) {
 // ---------------------------------------------------------------
 // 4. Main Component
 // ---------------------------------------------------------------
-export const GDPChart = () => {
+export const GDPChart = ({ onDataChange }: { onDataChange?: (data: any[]) => void }) => {
   const cacheKey = "gdp";
   const { toast } = useToast();
 
@@ -128,7 +128,7 @@ export const GDPChart = () => {
         toast({
           title: "Using demo data",
           description: "Real GDP data unavailable",
-          variant: "warning",
+          variant: "destructive",
         });
         fallbackToPlaceholder();
       });
@@ -141,6 +141,9 @@ export const GDPChart = () => {
     if (!dataAll.length) return;
     const months = RANGE_MAP[range];
     setDisplayData(dataAll.slice(-months));
+    if (onDataChange) {
+      onDataChange(dataAll);
+    }
   }, [dataAll, range]);
 
   // -----------------------------------------------------------------

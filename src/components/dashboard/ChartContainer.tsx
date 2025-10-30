@@ -9,6 +9,7 @@ import { PayrollsChart } from "@/components/charts/PayrollsChart";
 import { RetailSalesChart } from "@/components/charts/RetailSalesChart";
 import { IndustrialProductionChart } from "@/components/charts/IndustrialProductionChart";
 import { AIChat } from "@/components/dashboard/AIChat";
+import { useState } from "react";
 
 interface ChartContainerProps {
   selectedChart: ChartType;
@@ -60,6 +61,7 @@ const chartConfig: Record<ChartType, { title: string; description: string; compo
 export const ChartContainer = ({ selectedChart }: ChartContainerProps) => {
   const config = chartConfig[selectedChart];
   const ChartComponent = config.component;
+  const [chartData, setChartData] = useState<any[]>([]);
 
   return (
     <div className="space-y-6">
@@ -70,12 +72,15 @@ export const ChartContainer = ({ selectedChart }: ChartContainerProps) => {
         </CardHeader>
         <CardContent>
           <div id={`chart-${selectedChart}`}>
-            <ChartComponent />
+            {selectedChart === "gdp" ? (
+              <GDPChart onDataChange={setChartData} />
+            ) : (
+              <ChartComponent />
+            )}
           </div>
         </CardContent>
       </Card>
-
-      <AIChat chartType={selectedChart} />
+      <AIChat chartType={selectedChart} chartData={chartData} />
     </div>
   );
 };
