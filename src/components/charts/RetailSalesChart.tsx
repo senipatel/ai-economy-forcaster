@@ -197,7 +197,7 @@ export const RetailSalesChart = () => {
 
       {/* Chart */}
       <ResponsiveContainer width="100%" height={400} id="retail-chart">
-        <LineChart data={displayData} margin={{ top: 20, right: 20, bottom: 80, left: 20 }}>
+        <LineChart data={displayData} margin={{ top: 20, right: 20, bottom: 80, left: 30 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis
             dataKey="date"
