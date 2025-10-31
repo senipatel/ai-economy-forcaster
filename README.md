@@ -255,84 +255,13 @@ ai-economy-forcaster/
 This project was created by:
 
 - **[Sapna Sharma](https://github.com/Sapna190/)** ([@Sapna190](https://github.com/Sapna190/))
-  - 4th-year Computer Science and Engineering (CSE) student
-  - Skills: MERN Stack, Tailwind CSS, JavaScript, React, Node.js
-  - Email: sapnasharma8849711@gmail.com
 
 - **[Seni Patel](https://github.com/senipatel/)** ([@senipatel](https://github.com/senipatel/))
-  - 4th-year B.Tech student specializing in Information Technology
-  - Skills: Full Stack Development, Flutter, React, TypeScript
-  - Website: [senipatel.vercel.app](https://senipatel.vercel.app)
-  - Email: senipatel017@gmail.com
 
 ## 🤝 Contributing
 
-Contributions are welcome! This project encourages collaboration and improvement. Here's how you can contribute:
+Contributions are welcome! This project encourages collaboration and improvement. Here's how you can contribute.
 
-### How to Contribute
-
-1. **Fork the Repository**
-   ```bash
-   # Click the "Fork" button on GitHub
-   ```
-
-2. **Create a Feature Branch**
-   ```bash
-   git checkout -b feature/your-feature-name
-   # or
-   git checkout -b fix/your-bug-fix
-   ```
-
-3. **Make Your Changes**
-   - Write clean, readable code
-   - Follow the existing code style
-   - Add comments where necessary
-   - Update documentation if needed
-
-4. **Test Your Changes**
-   ```bash
-   npm run lint
-   npm run build
-   npm run dev  # Test locally
-   ```
-
-5. **Commit Your Changes**
-   ```bash
-   git add .
-   git commit -m "Add: description of your feature"
-   # Use clear, descriptive commit messages
-   ```
-
-6. **Push to Your Fork**
-   ```bash
-   git push origin feature/your-feature-name
-   ```
-
-7. **Create a Pull Request**
-   - Go to the original repository on GitHub
-   - Click "New Pull Request"
-   - Select your branch
-   - Describe your changes clearly
-
-### Contribution Guidelines
-
-- **Code Style**: Follow the existing code formatting (ESLint will help)
-- **TypeScript**: Maintain type safety - avoid `any` types when possible
-- **Components**: Use functional components with hooks
-- **Naming**: Use clear, descriptive names for variables and functions
-- **Documentation**: Update README.md if you add new features
-- **Testing**: Test your changes thoroughly before submitting
-
-### Areas for Contribution
-
-- 🔧 Bug fixes
-- ✨ New features and economic indicators
-- 📊 Additional chart types
-- 🎨 UI/UX improvements
-- 📝 Documentation improvements
-- 🌐 Multi-language support
-- 🧪 Unit and integration tests
-- 🚀 Performance optimizations
 
 ## 📄 License
 
@@ -340,19 +269,6 @@ This project is licensed under the **MIT License**.
 
 MIT License is a permissive license that allows anyone to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the software, as long as the original copyright notice and license are included.
 
-### License Selection
-
-You are free to:
-- ✅ Use the software commercially
-- ✅ Modify the software
-- ✅ Distribute the software
-- ✅ Private use
-- ✅ Sublicense
-
-With conditions:
-- ⚠️ License and copyright notice must be included
-
-For more details, see the full [MIT License](https://opensource.org/licenses/MIT) text.
 
 ---
 
