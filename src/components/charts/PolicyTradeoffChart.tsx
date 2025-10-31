@@ -42,7 +42,7 @@ const shortDate = (label: string | number) => {
   }
 };
 
-export const PolicyTradeoffChart = () => {
+export const PolicyTradeoffChart = ({ onDataChange }: { onDataChange?: (data: any[]) => void }) => {
   const cacheKey = "policy-tradeoff";
   const { toast } = useToast();
 
@@ -108,6 +108,13 @@ export const PolicyTradeoffChart = () => {
     const months = RANGE_MAP[range];
     setDisplayData(dataAll.slice(-months));
   }, [dataAll, range]);
+
+  // Emit full chart data to parent when it updates
+  useEffect(() => {
+    if (onDataChange) {
+      onDataChange(dataAll);
+    }
+  }, [dataAll, onDataChange]);
 
   // ================================================================
   // 3. Download
@@ -178,7 +185,7 @@ export const PolicyTradeoffChart = () => {
 
       {/* Chart */}
       <ResponsiveContainer width="100%" height={400} id="policy-tradeoff-chart">
-        <LineChart align="center" data={displayData} margin={{ top: 20, right: 20, bottom: 80, left: 20 }}>
+        <LineChart data={displayData} margin={{ top: 20, right: 20, bottom: 80, left: 20 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis
             dataKey="date"
@@ -210,7 +217,7 @@ export const PolicyTradeoffChart = () => {
             stroke="hsl(var(--chart-1))"
             domain={["dataMin - 1", "dataMax + 1"]}
           >
-            <Label align="center" value="GDP (Trillions $)" angle={-90} position="center" dx={-25} />
+            <Label value="GDP (Trillions $)" angle={-90} position="center" dx={-25} />
           </YAxis>
 
           {/* Right Y: Inflation */}
@@ -220,7 +227,7 @@ export const PolicyTradeoffChart = () => {
             stroke="hsl(var(--chart-2))"
             domain={[0, 10]}
           >
-            <Label align="center" value="Inflation (%)" angle={-90} position="center" dx={25} />
+            <Label value="Inflation (%)" angle={-90} position="center" dx={25} />
           </YAxis>
 
           <Tooltip

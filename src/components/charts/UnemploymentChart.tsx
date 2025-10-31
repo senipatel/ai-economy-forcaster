@@ -43,7 +43,7 @@ const shortDate = (label: string | number) => {
   }
 };
 
-export const UnemploymentChart = () => {
+export const UnemploymentChart = ({ onDataChange }: { onDataChange?: (data: any[]) => void }) => {
   const cacheKey = "unemployment";
   const { toast } = useToast();
 
@@ -108,6 +108,13 @@ export const UnemploymentChart = () => {
     const months = RANGE_MAP[range];
     setDisplayData(dataAll.slice(-months));
   }, [dataAll, range]);
+
+  // Emit full chart data to parent when it updates
+  useEffect(() => {
+    if (onDataChange) {
+      onDataChange(dataAll);
+    }
+  }, [dataAll, onDataChange]);
 
   // ================================================================
   // 3. Download

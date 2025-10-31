@@ -44,7 +44,7 @@ const shortDate = (label: string | number) => {
   }
 };
 
-export const RetailSalesChart = () => {
+export const RetailSalesChart = ({ onDataChange }: { onDataChange?: (data: any[]) => void }) => {
   const cacheKey = "retail-sales";
   const { toast } = useToast();
 
@@ -109,6 +109,13 @@ export const RetailSalesChart = () => {
     const months = RANGE_MAP[range];
     setDisplayData(dataAll.slice(-months));
   }, [dataAll, range]);
+
+  // Emit full chart data to parent when it updates
+  useEffect(() => {
+    if (onDataChange) {
+      onDataChange(dataAll);
+    }
+  }, [dataAll, onDataChange]);
 
   // ================================================================
   // 3. Download

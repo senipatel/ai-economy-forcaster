@@ -9,7 +9,7 @@ import { PayrollsChart } from "@/components/charts/PayrollsChart";
 import { RetailSalesChart } from "@/components/charts/RetailSalesChart";
 import { IndustrialProductionChart } from "@/components/charts/IndustrialProductionChart";
 import { AIChat } from "@/components/dashboard/AIChat";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface ChartContainerProps {
   selectedChart: ChartType;
@@ -63,6 +63,11 @@ export const ChartContainer = ({ selectedChart }: ChartContainerProps) => {
   const ChartComponent = config.component;
   const [chartData, setChartData] = useState<any[]>([]);
 
+  // Clear chart data when switching charts to avoid stale context
+  useEffect(() => {
+    setChartData([]);
+  }, [selectedChart]);
+
   return (
     <div className="space-y-6">
       <Card className="shadow-card border-border">
@@ -72,10 +77,12 @@ export const ChartContainer = ({ selectedChart }: ChartContainerProps) => {
         </CardHeader>
         <CardContent>
           <div id={`chart-${selectedChart}`}>
+            {/* Pass onDataChange to all charts; charts that don't use it will ignore */}
             {selectedChart === "gdp" ? (
               <GDPChart onDataChange={setChartData} />
             ) : (
-              <ChartComponent />
+              // Cast to any to allow optional onDataChange prop without refactoring all types
+              (<ChartComponent {...( { onDataChange: setChartData } as any)} />)
             )}
           </div>
         </CardContent>

@@ -37,6 +37,28 @@ const DEFAULT_PROMPTS = [
   "Predict next year's data trends",
 ];
 
+/**
+ * Simple retry helper for model.generateContent to handle transient 5xx errors.
+ */
+async function generateWithRetry(model: any, prompt: string, retries = 2, delayMs = 1200) {
+  let lastErr: any = null;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await model.generateContent(prompt);
+    } catch (err: any) {
+      lastErr = err;
+      const msg = String(err?.message ?? err);
+      // Retry on transient errors (e.g., 503 overloaded)
+      const isTransient = msg.includes("503") || msg.toLowerCase().includes("overloaded") || msg.toLowerCase().includes("timeout");
+      if (!isTransient || attempt === retries) {
+        throw err;
+      }
+      await new Promise((res) => setTimeout(res, delayMs));
+    }
+  }
+  throw lastErr;
+}
+
 async function getAvailableModelInstance() {
   // Attempt to get a usable model instance from the preferred list.
   // genAI.getGenerativeModel may throw if the model is not available.
@@ -116,15 +138,16 @@ export const AIChat = ({ chartType, chartData }: AIChatProps) => {
       // Get a working model instance (tries the list)
       const model = await getAvailableModelInstance();
 
+      const hasChartData = Array.isArray(chartData) && chartData.length > 0;
       const contextInfo =
-        includeChartData && chartData
-          ? `\n\nChart Data Context: ${JSON.stringify(chartData)}...`
+        includeChartData && hasChartData
+          ? `\n\nCurrent Indicator: ${chartType}. Chart Data (truncated): ${JSON.stringify(chartData)}`
           : "";
 
       const prompt = `You are an AI Economist Assistant. Answer only economy, finances, markets, trade, graph and nation related questions (macroeconomics, microeconomics, finance, markets, trade). If unrelated, reply: "I can only answer economy-related questions." Keep answers concise, simple, and clear. User: ${messageToSend} ${contextInfo}`;
 
       // Most SDKs accept either a plain string or an object; keep same call shape you had but guard result parsing.
-      const result = await model.generateContent(prompt);
+      const result = await generateWithRetry(model, prompt);
 
       const responseText = extractTextFromResult(result) ?? "No response from model.";
 
