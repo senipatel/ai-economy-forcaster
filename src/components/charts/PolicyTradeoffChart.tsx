@@ -66,7 +66,6 @@ export const PolicyTradeoffChart = ({ onDataChange }: { onDataChange?: (data: an
   const [displayData, setDisplayData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState<RangeKey>("1Y");
-  const [showDots, setShowDots] = useState<boolean>(true);
   const [chartType, setChartType] = useState<ChartType>("line");
 
   // ================================================================
@@ -216,12 +215,6 @@ export const PolicyTradeoffChart = ({ onDataChange }: { onDataChange?: (data: an
                 </button>
               ))}
             </div>
-            {chartType === "line" && (
-              <label className="inline-flex items-center gap-2 text-sm">
-                <Checkbox checked={showDots} onCheckedChange={(v) => setShowDots(Boolean(v))} />
-                <span className="select-none">Show markers</span>
-              </label>
-            )}
             <div className="flex items-center gap-2">
               <label htmlFor="chart-type" className="text-sm select-none">
                 Chart Type
@@ -327,7 +320,7 @@ export const PolicyTradeoffChart = ({ onDataChange }: { onDataChange?: (data: an
             stroke="hsl(var(--chart-1))"
             strokeWidth={3}
             name="GDP Growth (Trillions)"
-            dot={showDots ? { fill: "hsl(var(--chart-1))", r: 4 } : false}
+            dot={{ fill: "hsl(var(--chart-1))", r: 4 }}
             connectNulls
           />
           <Line
@@ -337,7 +330,7 @@ export const PolicyTradeoffChart = ({ onDataChange }: { onDataChange?: (data: an
             stroke="hsl(var(--chart-2))"
             strokeWidth={2}
             name="Inflation (%)"
-            dot={showDots ? { fill: "hsl(var(--chart-2))", r: 3 } : false}
+            dot={false}
           />
         </LineChart>
         ) : (

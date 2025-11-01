@@ -82,7 +82,6 @@ export const GDPChart = ({ onDataChange }: { onDataChange?: (data: any[]) => voi
   const [displayData, setDisplayData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState<RangeKey>("1Y");
-  const [showDots, setShowDots] = useState<boolean>(true);
   const [chartType, setChartType] = useState<ChartType>("line");
 
   const fallbackToPlaceholder = () => {
@@ -289,15 +288,6 @@ export const GDPChart = ({ onDataChange }: { onDataChange?: (data: any[]) => voi
               ))}
             </div>
 
-            {chartType === "line" && (
-              <label className="inline-flex items-center gap-2 text-sm">
-                <Checkbox
-                  checked={showDots}
-                  onCheckedChange={(v) => setShowDots(Boolean(v))}
-                />
-                <span className="select-none">Show markers</span>
-              </label>
-            )}
             <div className="flex items-center gap-2">
               <label htmlFor="chart-type" className="text-sm select-none">
                 Chart Type
@@ -380,7 +370,7 @@ export const GDPChart = ({ onDataChange }: { onDataChange?: (data: any[]) => voi
               stroke="hsl(var(--chart-1))"
               strokeWidth={3}
               name="Real GDP (Trillions of 2017 $)"
-              dot={showDots ? { fill: "hsl(var(--chart-1))", r: 4 } : false}
+              dot={false}
             />
           </LineChart>
         ) : (

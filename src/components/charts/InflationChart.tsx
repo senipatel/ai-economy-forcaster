@@ -69,7 +69,6 @@ export const InflationChart = ({ onDataChange }: { onDataChange?: (data: any[]) 
   const [displayData, setDisplayData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState<RangeKey>("1Y");
-  const [showDots, setShowDots] = useState<boolean>(true);
   const [chartType, setChartType] = useState<ChartType>("line");
 
   // ================================================================
@@ -217,12 +216,6 @@ export const InflationChart = ({ onDataChange }: { onDataChange?: (data: any[]) 
                 </button>
               ))}
             </div>
-            {chartType === "line" && (
-              <label className="inline-flex items-center gap-2 text-sm">
-                <Checkbox checked={showDots} onCheckedChange={(v) => setShowDots(Boolean(v))} />
-                <span className="select-none">Show markers</span>
-              </label>
-            )}
             <div className="flex items-center gap-2">
               <label htmlFor="chart-type" className="text-sm select-none">
                 Chart Type
@@ -316,7 +309,7 @@ export const InflationChart = ({ onDataChange }: { onDataChange?: (data: any[]) 
             stroke="hsl(var(--chart-2))"
             strokeWidth={3}
             name="Inflation Rate (%)"
-            dot={showDots ? { fill: "hsl(var(--chart-2))", r: 4 } : false}
+            dot={false}
           />
         </LineChart>
         ) : (
