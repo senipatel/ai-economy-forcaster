@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, BarChart3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export const DashboardHeader = () => {
@@ -15,15 +15,26 @@ export const DashboardHeader = () => {
         </h1>
       </div>
       
-      <Button 
-        variant="outline" 
-        size="sm"
-        onClick={() => navigate("/")}
-        className="gap-2"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Back to Home
-      </Button>
+      <div className="flex items-center gap-2">
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => navigate("/backtesting")}
+          className="gap-2"
+        >
+          <BarChart3 className="w-4 h-4" />
+          Backtesting
+        </Button>
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => navigate("/")}
+          className="gap-2"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Home
+        </Button>
+      </div>
     </header>
   );
 };

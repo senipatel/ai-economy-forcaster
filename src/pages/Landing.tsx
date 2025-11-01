@@ -65,6 +65,12 @@ const Landing = () => {
               >
                 About
               </button>
+              <button
+                onClick={() => navigate("/backtesting")}
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Backtesting
+              </button>
               <Button
                 size="sm"
                 onClick={() => navigate("/dashboard")}
@@ -109,6 +115,12 @@ const Landing = () => {
                   className="text-left px-4 py-2 rounded-lg hover:bg-accent transition-colors text-sm font-medium"
                 >
                   About
+                </button>
+                <button
+                  onClick={() => navigate("/backtesting")}
+                  className="text-left px-4 py-2 rounded-lg hover:bg-accent transition-colors text-sm font-medium"
+                >
+                  Backtesting
                 </button>
                 <Button
                   size="sm"
