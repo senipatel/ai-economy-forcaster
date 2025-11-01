@@ -22,7 +22,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Download, Loader2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Download, Loader2, FileImage, FileSpreadsheet } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import html2canvas from "html2canvas";
 import { getCachedData, setCachedData } from "@/lib/chartCache";
@@ -147,9 +153,9 @@ export const GDPChart = ({ onDataChange }: { onDataChange?: (data: any[]) => voi
   }, [dataAll, range]);
 
   // -----------------------------------------------------------------
-  // 7. Download handler (unchanged)
+  // 7. Download handlers
   // -----------------------------------------------------------------
-  const handleDownload = async () => {
+  const handleDownloadImage = async () => {
     const chartElement = document.getElementById("gdp-chart");
     if (!chartElement) return;
 
@@ -162,12 +168,51 @@ export const GDPChart = ({ onDataChange }: { onDataChange?: (data: any[]) => voi
       link.download = `gdp-${chartType}-chart.png`;
       link.href = canvas.toDataURL();
       link.click();
-      toast({ title: "Success", description: "Chart downloaded" });
+      toast({ title: "Success", description: "Chart image downloaded" });
     } catch (err) {
       console.error(err);
       toast({
         title: "Error",
-        description: "Download failed",
+        description: "Image download failed",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDownloadCSV = () => {
+    try {
+      // Create CSV header
+      const headers = ["Date", "Real GDP (Trillions of 2017 $)"];
+      const csvRows = [headers.join(",")];
+
+      // Add data rows
+      displayData.forEach((row) => {
+        const date = String(row.date || "");
+        const gdp = String(row.gdp || "");
+        csvRows.push([date, gdp].join(","));
+      });
+
+      // Create CSV content
+      const csvContent = csvRows.join("\n");
+
+      // Create blob and download
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `gdp-data-${range}.csv`);
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast({ title: "Success", description: "CSV data downloaded" });
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: "Error",
+        description: "CSV download failed",
         variant: "destructive",
       });
     }
@@ -274,15 +319,24 @@ export const GDPChart = ({ onDataChange }: { onDataChange?: (data: any[]) => voi
 
           {/* RIGHT: download */}
           <div className="flex-shrink-0">
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2 no-export"
-              onClick={handleDownload}
-            >
-              <Download className="w-4 h-4" />
-              Download
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2 no-export">
+                  <Download className="w-4 h-4" />
+                  Download
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleDownloadImage} className="cursor-pointer">
+                  <FileImage className="w-4 h-4 mr-2" />
+                  Download as Image (PNG)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDownloadCSV} className="cursor-pointer">
+                  <FileSpreadsheet className="w-4 h-4 mr-2" />
+                  Download as CSV
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>

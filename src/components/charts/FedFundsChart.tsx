@@ -10,15 +10,31 @@ import {
   Legend,
   ResponsiveContainer,
   Label,
+  BarChart,
+  Bar,
 } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Download, Loader2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Download, Loader2, FileImage, FileSpreadsheet } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getCachedData, setCachedData } from "@/lib/chartCache";
 import html2canvas from "html2canvas";
 
 type RangeKey = "3M" | "1Y" | "3Y" | "5Y" | "10Y";
+type ChartType = "line" | "bar";
 const RANGE_MAP: Record<RangeKey, number> = {
   "3M": 3,
   "1Y": 12,
@@ -59,6 +75,7 @@ export const FedFundsChart = ({ onDataChange }: { onDataChange?: (data: any[]) =
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState<RangeKey>("1Y");
   const [showDots, setShowDots] = useState<boolean>(true);
+  const [chartType, setChartType] = useState<ChartType>("line");
 
   // ================================================================
   // 1. Fetch from /api/fred-fedfunds
@@ -124,21 +141,50 @@ export const FedFundsChart = ({ onDataChange }: { onDataChange?: (data: any[]) =
   }, [dataAll, onDataChange]);
 
   // ================================================================
-  // 3. Download
+  // 3. Download handlers
   // ================================================================
-  const handleDownload = async () => {
+  const handleDownloadImage = async () => {
     const chartElement = document.getElementById("fedfunds-chart");
     if (!chartElement) return;
 
     try {
       const canvas = await html2canvas(chartElement, { backgroundColor: null, scale: 2 });
       const link = document.createElement("a");
-      link.download = "fedfunds-chart.png";
+      link.download = `fedfunds-${chartType}-chart.png`;
       link.href = canvas.toDataURL();
       link.click();
-      toast({ title: "Success", description: "Chart downloaded" });
+      toast({ title: "Success", description: "Chart image downloaded" });
     } catch (err) {
-      toast({ title: "Error", description: "Download failed", variant: "destructive" });
+      toast({ title: "Error", description: "Image download failed", variant: "destructive" });
+    }
+  };
+
+  const handleDownloadCSV = () => {
+    try {
+      const headers = ["Date", "Federal Funds Rate (%)"];
+      const csvRows = [headers.join(",")];
+
+      displayData.forEach((row) => {
+        const date = String(row.date || "");
+        const rate = String(row.rate || "");
+        csvRows.push([date, rate].join(","));
+      });
+
+      const csvContent = csvRows.join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `fedfunds-data-${range}.csv`);
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast({ title: "Success", description: "CSV data downloaded" });
+    } catch (err) {
+      toast({ title: "Error", description: "CSV download failed", variant: "destructive" });
     }
   };
 
@@ -176,23 +222,57 @@ export const FedFundsChart = ({ onDataChange }: { onDataChange?: (data: any[]) =
                 </button>
               ))}
             </div>
-            <label className="inline-flex items-center gap-2 text-sm">
-              <Checkbox checked={showDots} onCheckedChange={(v) => setShowDots(Boolean(v))} />
-              <span className="select-none">Show markers</span>
-            </label>
+            {chartType === "line" && (
+              <label className="inline-flex items-center gap-2 text-sm">
+                <Checkbox checked={showDots} onCheckedChange={(v) => setShowDots(Boolean(v))} />
+                <span className="select-none">Show markers</span>
+              </label>
+            )}
+            <div className="flex items-center gap-2">
+              <label htmlFor="chart-type" className="text-sm select-none">
+                Chart Type
+              </label>
+              <Select
+                value={chartType}
+                onValueChange={(v) => setChartType(v as ChartType)}
+              >
+                <SelectTrigger id="chart-type" className="w-[100px] h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="line">Line</SelectItem>
+                  <SelectItem value="bar">Bar</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <div className="flex-shrink-0">
-            <Button variant="outline" size="sm" className="gap-2" onClick={handleDownload}>
-              <Download className="w-4 h-4" />
-              Download
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2 no-export">
+                  <Download className="w-4 h-4" />
+                  Download
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleDownloadImage} className="cursor-pointer">
+                  <FileImage className="w-4 h-4 mr-2" />
+                  Download as Image (PNG)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDownloadCSV} className="cursor-pointer">
+                  <FileSpreadsheet className="w-4 h-4 mr-2" />
+                  Download as CSV
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
 
       {/* Chart */}
       <ResponsiveContainer width="100%" height={400} id="fedfunds-chart">
-        <LineChart data={displayData} margin={{ top: 20, right: 20, bottom: 80, left: 20 }}>
+        {chartType === "line" ? (
+          <LineChart data={displayData} margin={{ top: 20, right: 20, bottom: 80, left: 20 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis
             dataKey="date"
@@ -237,6 +317,50 @@ export const FedFundsChart = ({ onDataChange }: { onDataChange?: (data: any[]) =
             dot={showDots ? { fill: "hsl(var(--chart-1))", r: 4 } : false}
           />
         </LineChart>
+        ) : (
+          <BarChart data={displayData} margin={{ top: 20, right: 20, bottom: 80, left: 20 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis
+              dataKey="date"
+              stroke="hsl(var(--foreground))"
+              tick={({ x, y, payload }: any) => {
+                const label = shortDate(payload?.value ?? "");
+                const ty = y + 14;
+                return (
+                  <text
+                    x={x}
+                    y={ty}
+                    transform={`rotate(-90 ${x} ${ty})`}
+                    textAnchor="end"
+                    fill="hsl(var(--foreground))"
+                    fontSize={11}
+                  >
+                    {label}
+                  </text>
+                );
+              }}
+              interval={interval}
+            >
+              <Label value="Date" position="center" dy={60} />
+            </XAxis>
+            <YAxis stroke="hsl(var(--foreground))">
+              <Label value="Federal Funds Rate (%)" angle={-90} position="center" dx={-30} />
+            </YAxis>
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "hsl(var(--card))",
+                border: "1px solid hsl(var(--border))",
+                borderRadius: 8,
+              }}
+            />
+            <Legend verticalAlign="top" align="center" />
+            <Bar
+              dataKey="rate"
+              fill="hsl(var(--chart-1))"
+              name="Federal Funds Rate (%)"
+            />
+          </BarChart>
+        )}
       </ResponsiveContainer>
     </div>
   );
